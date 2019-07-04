@@ -16,14 +16,27 @@
 
 //--- Exported types ---//
 //--- Exported constants ---//
+#if (defined USE_FREQ_48KHZ)
 #define DUTY_NONE		0
 #define DUTY_5_PERCENT		50
 #define DUTY_10_PERCENT		100
 #define DUTY_FOR_DMAX           450
 #define DUTY_50_PERCENT		500
-#define DUTY_50_PERCENT_PLUS_ONE		501
+#define DUTY_50_PERCENT_PLUS_ONE    (DUTY_50_PERCENT + 1)
 #define DUTY_100_PERCENT        1000
 #define DUTY_ALWAYS        (DUTY_100_PERCENT + 1)
+#elif (defined USE_FREQ_70KHZ)
+#define DUTY_NONE		0
+#define DUTY_5_PERCENT		34
+#define DUTY_10_PERCENT		68
+#define DUTY_FOR_DMAX           (DUTY_50_PERCENT)
+#define DUTY_50_PERCENT		343
+#define DUTY_50_PERCENT_PLUS_ONE    (DUTY_50_PERCENT + 1)
+#define DUTY_100_PERCENT        686
+#define DUTY_ALWAYS        (DUTY_100_PERCENT + 1)
+#else
+#error "No FREQ selected for TIM3 on hard.h"
+#endif
 
 #define DUTY_FB_25A    395    //esto es 1.17V que equivale a 25Apico en el primario
 
@@ -78,10 +91,7 @@
 #define UpdateFB(X)    Update_TIM14_CH1(X)
 #endif
 
-#define LOW_LEFT(X)     Update_TIM3_CH1(X)
-#define HIGH_LEFT(X)    Update_TIM3_CH2(X)
-#define LOW_RIGHT(X)     Update_TIM3_CH3(X)
-#define HIGH_RIGHT(X)    Update_TIM3_CH4(X)
+#define CTRL_MOSFET(X)     Update_TIM3_CH1(X)
 
 //--- Exported functions ---//
 

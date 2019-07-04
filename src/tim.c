@@ -185,33 +185,14 @@ void TIM_3_Init (void)
     //TIM3->SMCR |= TIM_SMCR_SMS_2;    //reset mode link timer1    OJO no anda
     // TIM3->SMCR |= TIM_SMCR_SMS_2 | TIM_SMCR_SMS_1;    //trigger mode link timer1
     TIM3->SMCR = 0x0000;    //
-    TIM3->CCMR1 = 0x6060;            //CH1 CH2 output PWM mode 1 (channel active TIM3->CNT < TIM3->CCR1)
-    TIM3->CCMR2 = 0x6060;            //CH3 CH4
-    //  TIM3->CCER |= TIM_CCER_CC1E | TIM_CCER_CC1P;    //CH1 enable on pin active low
-    TIM3->CCER |= TIM_CCER_CC4E |
-        TIM_CCER_CC3E |
-        TIM_CCER_CC2E |
-        TIM_CCER_CC1E;    //CH1 CH2 CH3 CH4 enable on pin active high
+    TIM3->CCMR1 = 0x0060;            //CH1 output PWM mode 1 (channel active TIM3->CNT < TIM3->CCR1)
+    TIM3->CCMR2 = 0x0000;
+    TIM3->CCER |= TIM_CCER_CC1E | TIM_CCER_CC1P;    //CH1 enable on pin active low
 
     TIM3->ARR = DUTY_100_PERCENT;
     TIM3->CNT = 0;
-
-#if defined USE_FREQ_48KHZ
     TIM3->PSC = 0;
-#elif defined USE_FREQ_24KHZ
-    TIM3->PSC = 1;
-#elif defined USE_FREQ_16KHZ
-    TIM3->PSC = 2;
-#elif defined USE_FREQ_12KHZ
-    TIM3->PSC = 3;
-#elif defined USE_FREQ_9_6KHZ
-    TIM3->PSC = 4;
-#else
-#error "No FREQ selected for TIM3 on hard.h"
-#endif
     
-    //TIM3->EGR = TIM_EGR_UG;    //generate event
-
     //Alternative Function Pins
     temp = GPIOA->AFR[0];
     temp &= 0x00FFFFFF;
@@ -361,7 +342,7 @@ void TIM17_IRQHandler (void)
 {
     if (TIM17->SR & 0x01)
     {
-        SYNC_Zero_Crossing_Handler();
+        // SYNC_Zero_Crossing_Handler();
         TIM17->SR = 0x00;    //flag down
     }    
 }

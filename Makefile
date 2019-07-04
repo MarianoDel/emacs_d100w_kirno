@@ -90,10 +90,10 @@ SRC += ./src/hard.c
 SRC += ./src/it.c
 SRC += ./src/tim.c
 # SRC += ./src/spi.c
-SRC += ./src/uart.c
+# SRC += ./src/uart.c
 SRC += ./src/dma.c
 
-SRC += ./src/sync.c
+# SRC += ./src/sync.c
 
 
 

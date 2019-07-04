@@ -1,0 +1,86 @@
+* DRIVER DE 100W CON MICRO stm32f030K6T6
+** Arranque Hardware
+*** TODO Implementar DMA para el ADC
+    - ver frecuencia de final de muestreo
+
+*** TODO El muestreo con TIM1 termina muy sobre el nuevo pulso
+    - Corregir el tiempo de muestreo atrasando o adelentando el sample time
+     Lo paso a 71.5 ciclos y termina muestreando a 24KHz
+
+*** TODO Revisar sensado de corriente - parece no funcionar ok -
+*** TODO Maxima tension de salida - quema el diodo FR307 -
+    - Agregar red Snubber???
+*** TODO Soft start del filtro para Vout a traves de dmax y Vin [2/2]
+    - [X] definir dmax segun la tension de entrada CORREGIR de 20 a 25V tiene el valor de 20
+    - [X] revisar Vout en funcion de dmax con algo de carga
+
+*** TODO Temas del PID
+    - Con un valor fijo de d; ejemplo d = 100 y Vout = 0, sin carga, salta la proteccion de 
+      corriente
+    - Podria implementar un d delta de 5 puntos maximo, para que no avance tan rapido
+    - Me ayuda tambien con el Soft Start
+
+*** TODO Con corriente en QB salta proteccion de QA
+    - 24-07-18 Mejore la pista con cable de red, el sensado ya no pasa por debajo del transformador
+    - 24-07-18 Ahora no aparecen pulsos en de corriente en QB
+*** La bobina de salida ve una diferencia de tension muy alta en arranque
+    - definir dmax respecto de la bobina de salida
+      Vout trafo * Ton = I * Lm
+** Info por el puerto serie
+*** Por el puerto serie debiera enviar info
+    - [ ] potencia estimada
+    - [ ] error estimado
+    - [ ] maximo pwm que esta permitiendo
+    - [ ] d actual q1 y q2
+    - [ ] tension de entrada sensada
+    - [ ] info de corriente (medida q1 y q2 o algo asi)
+
+** DONE Mensaje de Bienvenida
+   CLOSED: [2018-07-23 Mon 12:18]
+
+
+* Cambios Hard Version 1.0
+** ERRORES de Hard
+   - Pines alimentacion y masa en AR1 (LM358) estan mal
+   - R13 0 ohms quitar, no hace falta
+   - R29 0 ohms quitar, no hace falta
+   - R35 10 ohms quitar, no hace falta
+   - Agregar detector de corriente pico en mosfet
+   - D6 zener de 15V bajarlo a 12V
+   - Q7 debe ser BC807 y no BC857
+
+** Fuente baja tension lado salida
+   - quitar U2, no regular 5V dejar los 15V, o un poco menos, libre
+
+** Fuente del uC lado entrada
+   - cambiar 78L33 por algo con menos consumo interno, baja Quiescent Current
+
+* Mediciones 04-07-19
+** Sensado de tension VPOS
+
+   | VPOS  | Vup (R30) |
+   |-------+-----------|
+   | 34.8V | 1.68V     |
+   | 30V   | 1.4V      |
+   | 24V   | 0.88V     |
+
+** Sensado de corriente Rsense
+
+   | IOUT  | Iup (R17) |
+   |-------+-----------|
+   | 2.38A | 1.56V     |
+
+** Sensado de 220Vac - V220_sense
+
+   | Vin acrms | V220_sense | Comments.                                |
+   |-----------+------------+------------------------------------------|
+   | 220Vac    | 2.52V 50Hz | mucho ruido, es una senoidal rectificada |
+   |           |            |                                          |
+
+** Isense del mosfet
+   - 4 R 1ohm SMD en //
+
+   | Salida    | V(I_sense)                                |
+   |-----------+-------------------------------------------|
+   | 30V 2.38A | 260mV; 480mV (trapecio); Ton 6us T 15.6us |
+   

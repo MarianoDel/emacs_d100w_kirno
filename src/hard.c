@@ -108,139 +108,139 @@ void UpdateLed (void)
 
 //proteccion para no superar el valor Vin . Ton que puede saturar al trafo
 //con 6T primario
-unsigned short UpdateDMAX (unsigned short a)
-{
-    if (a > VIN_35V)
-        a = 260;
-    else if (a > VIN_30V)
-        a = 297;
-    else if (a > VIN_25V)
-        a = 347;
-    else if (a > VIN_20V)
-        a = 417;
-    else
-        a = 450;
+// unsigned short UpdateDMAX (unsigned short a)
+// {
+//     if (a > VIN_35V)
+//         a = 260;
+//     else if (a > VIN_30V)
+//         a = 297;
+//     else if (a > VIN_25V)
+//         a = 347;
+//     else if (a > VIN_20V)
+//         a = 417;
+//     else
+//         a = 450;
     
-    return a;
-}
+//     return a;
+// }
 
-unsigned short UpdateDMAXSF (unsigned short a)
-{
-    //por saturacion en arranque cambio max D
-    if (a > VIN_35V)
-        a = 50;
-    else if (a > VIN_30V)
-        a = 70;
-    else if (a > VIN_25V)
-        a = 90;
-    else if (a > VIN_20V)
-        a = 120;
-    else
-        a = 150;
+// unsigned short UpdateDMAXSF (unsigned short a)
+// {
+//     //por saturacion en arranque cambio max D
+//     if (a > VIN_35V)
+//         a = 50;
+//     else if (a > VIN_30V)
+//         a = 70;
+//     else if (a > VIN_25V)
+//         a = 90;
+//     else if (a > VIN_20V)
+//         a = 120;
+//     else
+//         a = 150;
 
-    return a;
-}
+//     return a;
+// }
 
 //Calcula en funcion de la tension aplicada a la bobina Lout
 //el maxido d en ticks posible. Utiliza Imax (entrada o salida), Lout, tick_pwm
-unsigned short UpdateDmaxLout (unsigned short delta_voltage)
-{
-    unsigned int num, den;
+// unsigned short UpdateDmaxLout (unsigned short delta_voltage)
+// {
+//     unsigned int num, den;
 
-    if (delta_voltage > 0)
-    {
-        // num = I_FOR_CALC * LOUT_UHY * 1000;    //cambio para no tener decimales en el preprocesador
-        num =  (ILOUT * 1000) * LOUT_UHY;
-        // num = I_FOR_CALC_MILLIS * LOUT_UHY;    
-        den = delta_voltage * TICK_PWM_NS;
-        num = num / den;
+//     if (delta_voltage > 0)
+//     {
+//         // num = I_FOR_CALC * LOUT_UHY * 1000;    //cambio para no tener decimales en el preprocesador
+//         num =  (ILOUT * 1000) * LOUT_UHY;
+//         // num = I_FOR_CALC_MILLIS * LOUT_UHY;    
+//         den = delta_voltage * TICK_PWM_NS;
+//         num = num / den;
 
-        if (num > DMAX_HARDWARE)
-            num = DMAX_HARDWARE;
-    }
-    else
-        num = DMAX_HARDWARE;
+//         if (num > DMAX_HARDWARE)
+//             num = DMAX_HARDWARE;
+//     }
+//     else
+//         num = DMAX_HARDWARE;
 
-    return (unsigned short) num;
-}
+//     return (unsigned short) num;
+// }
 
 //Convierte el valor de ticks ADC Vout a tension
-unsigned short VoutTicksToVoltage (unsigned short sample_adc)
-{
-    unsigned int num;
+// unsigned short VoutTicksToVoltage (unsigned short sample_adc)
+// {
+//     unsigned int num;
 
-    if (sample_adc > VOUT_300V)
-    {
-        num = sample_adc * 350;
-        num = num / VOUT_350V;
-    }
-    else if (sample_adc > VOUT_200V)
-    {
-        num = sample_adc * 300;
-        num = num / VOUT_300V;
-    }
-    else if (sample_adc > VOUT_110V)
-    {
-        num = sample_adc * 200;
-        num = num / VOUT_200V;
-    }
-    else
-    {
-        num = sample_adc * 110;
-        num = num / VOUT_110V;
-    }
+//     if (sample_adc > VOUT_300V)
+//     {
+//         num = sample_adc * 350;
+//         num = num / VOUT_350V;
+//     }
+//     else if (sample_adc > VOUT_200V)
+//     {
+//         num = sample_adc * 300;
+//         num = num / VOUT_300V;
+//     }
+//     else if (sample_adc > VOUT_110V)
+//     {
+//         num = sample_adc * 200;
+//         num = num / VOUT_200V;
+//     }
+//     else
+//     {
+//         num = sample_adc * 110;
+//         num = num / VOUT_110V;
+//     }
     
-    return (unsigned short) num;
-}
+//     return (unsigned short) num;
+// }
 
 //Convierte el valor de ticks ADC Vin a tension
-unsigned short VinTicksToVoltage (unsigned short sample_adc)
-{
-    unsigned int num;
+// unsigned short VinTicksToVoltage (unsigned short sample_adc)
+// {
+//     unsigned int num;
 
-    if (sample_adc > VIN_30V)
-    {
-        num = sample_adc * 35;
-        num = num / VIN_35V;
-    }
-    else if (sample_adc > VIN_25V)
-    {
-        num = sample_adc * 30;
-        num = num / VIN_30V;
-    }
-    else if (sample_adc > VIN_20V)
-    {
-        num = sample_adc * 25;
-        num = num / VIN_25V;
-    }    
-    else
-    {
-        num = sample_adc * 20;
-        num = num / VIN_20V;
-    }
+//     if (sample_adc > VIN_30V)
+//     {
+//         num = sample_adc * 35;
+//         num = num / VIN_35V;
+//     }
+//     else if (sample_adc > VIN_25V)
+//     {
+//         num = sample_adc * 30;
+//         num = num / VIN_30V;
+//     }
+//     else if (sample_adc > VIN_20V)
+//     {
+//         num = sample_adc * 25;
+//         num = num / VIN_25V;
+//     }    
+//     else
+//     {
+//         num = sample_adc * 20;
+//         num = num / VIN_20V;
+//     }
     
-    return (unsigned short) num;
-}
+//     return (unsigned short) num;
+// }
 
 
 //Con la tension de entrada y salida calcula el maximo periodo permitido
-unsigned short Hard_GetDmaxLout (unsigned short vin, unsigned short vout)
-{
-    unsigned int delta_vout = 0;
-    unsigned short normalized_vout = 0;
+// unsigned short Hard_GetDmaxLout (unsigned short vin, unsigned short vout)
+// {
+//     unsigned int delta_vout = 0;
+//     unsigned short normalized_vout = 0;
 
-    delta_vout = VinTicksToVoltage(vin);
-    delta_vout = (delta_vout * N_TRAFO) / 1000;
+//     delta_vout = VinTicksToVoltage(vin);
+//     delta_vout = (delta_vout * N_TRAFO) / 1000;
 
-    normalized_vout = VoutTicksToVoltage(vout);
+//     normalized_vout = VoutTicksToVoltage(vout);
     
-    if (delta_vout > normalized_vout)
-        delta_vout = delta_vout - normalized_vout;
-    else
-        delta_vout = 0;
+//     if (delta_vout > normalized_vout)
+//         delta_vout = delta_vout - normalized_vout;
+//     else
+//         delta_vout = 0;
     
-    return UpdateDmaxLout((unsigned short)delta_vout);
-}
+//     return UpdateDmaxLout((unsigned short)delta_vout);
+// }
 
 void WelcomeCodeFeatures (char * str)
 {

@@ -26,11 +26,12 @@
 #endif
 //----------- End of ADC Configurations --------------//
 
-#define V_Sense        adc_ch[0]
-#define Vline_Sense    V_Sense
-#define I_Sense_Pos    adc_ch[1]
-#define I_Sense_Neg    adc_ch[2]
-#define ADC_CHANNEL_QUANTITY         3
+#define Vbias_Sense    adc_ch[0]
+#define Vup            adc_ch[1]
+#define I_Sense        adc_ch[2]
+#define Iup            adc_ch[3]
+#define V220_Sense     adc_ch[4]
+#define ADC_CHANNEL_QUANTITY         5
 #define ADC_LAST_CHANNEL_QUANTITY    (ADC_CHANNEL_QUANTITY - 1)
 
 

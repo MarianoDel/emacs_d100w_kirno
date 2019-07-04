@@ -10,8 +10,8 @@
 #ifndef _HARD_H_
 #define _HARD_H_
 
-//----------- Defines For Configuration -------------
-//----------- Hardware Board Version -------------
+//--- Defines For Configuration ----------------------------
+//--- Hardware Board Version -------------------------------
 #define VER_1_0    //version original
 
 
@@ -29,7 +29,7 @@
 #define VIN_UNDERVOLTAGE_THRESHOLD_TO_DISCONNECT    VIN_10V
 #define VIN_UNDERVOLTAGE_THRESHOLD_TO_RECONNECT    VIN_12V
 
-//---- Configuration for Hardware Versions -------
+//--- Configuration for Hardware Versions ------------------
 #ifdef VER_2_0
 #define HARDWARE_VERSION_2_0
 #define SOFTWARE_VERSION_2_0
@@ -47,29 +47,19 @@
 
 // SOFTWARE Features -------------------------
 //-- Types of programs ----------
-// #define INVERTER_MODE
-// #define INVERTER_MODE_PURE_SINUSOIDAL
-#define INVERTER_MODE_CURRENT_FDBK
-// #define INVERTER_MODE_GRID_TIE
-// #define INVERTER_ONLY_SYNC_AND_POLARITY
+// #define DRIVER_MODE
 
 //-- Types of led indications ----------
-// #define USE_LED_FOR_SYNC_PULSES
-// #define USE_LED_FOR_ZERO_CROSSING
-// #define USE_LED_FOR_VLINE_MAX
-#define USE_LED_FOR_MAIN_POLARITY
-// #define USE_LED_FOR_MAIN_STATES
+#define USE_LED_FOR_MAIN_STATES
+// #define USE_LED_FOR_PWM_PULSES
 
 //-- Frequency selection ----------
-// #define USE_FREQ_48KHZ
-// #define USE_FREQ_24KHZ
-// #define USE_FREQ_16KHZ
-#define USE_FREQ_12KHZ
-// #define USE_FREQ_9_6KHZ
+// #define USE_FREQ_70KHZ    //max pwm: 686
+#define USE_FREQ_48KHZ    //max pwm: 1000
 
 //-- Types of Interrupts ----------
 // #define WITH_AC_SYNC_INT
-#define WITH_OVERCURRENT_SHUTDOWN
+// #define WITH_OVERCURRENT_SHUTDOWN
 
 //---- End of Features Configuration ----------
 
@@ -102,102 +92,51 @@
 
 //-------- End Of Defines For Configuration ------
 
-#define VIN_35V    986
-#define VIN_30V    845
-#define VIN_25V    704
-#define VIN_20V    561    //1.81V
-#define VIN_17V    477
-#define VIN_15V    423
-#define VIN_12V    338
-#define VIN_10V    282
+#define VIN_25V    698
+#define VIN_10V    279
+#define VIN_08V    223
 
+#define VBIAS_HIGH    VIN_25V
+#define VBIAS_LOW     VIN_08V
+#define VBIAS_START   VIN_10V
 
-// #define VOUT_200V    415
-#define VOUT_110V    151    //ajustado 05-08-18
-#define VOUT_200V    386    //ajustado 24-07-18
-#define VOUT_205V    399    
-#define VOUT_195V    373
-#define VOUT_300V    660    //ajustado 24-07-18
-#define VOUT_350V    802    //ajustado 24-07-18
-#define VOUT_400V    917    //
+#define VOUT_35V    521    
 
-//Caracteristicas de la bobina de salida
-// #define LOUT_UHY    130    //DINL2
-// #define LOUT_UHY    330    //doble bobina amarilla
-// #define ILOUT       3      //doble bobina amarilla
-// #define LOUT_UHY    2100    //POL12050 bobinado primario
-// #define ILOUT       1      //POL12050
-#define LOUT_UHY    6400    //nueva bobina ale 6.4mHy
-#define ILOUT       1      //nueva ale
-#define TICK_PWM_NS 21
-#define N_TRAFO     18300
-#define IMAX_INPUT  25
-#define MAX_VOUT    830    //830 -> 362V tension maxima que sale del trafo en puntos ADC
-
-#if ((ILOUT * N_TRAFO) > (IMAX_INPUT * 1000))
-#define I_FOR_CALC_MILLIS (IMAX_INPUT * 1000 * 1000 / N_TRAFO)
-#define I_FOR_CALC (IMAX_INPUT * 1000 / N_TRAFO)
-#else
-#define I_FOR_CALC_MILLIS (ILOUT * 1000)
-#define I_FOR_CALC (IMAX_INPUT * 1000)
-#endif
-
-#define VOUT_SOFT_START    VOUT_110V
-
-#define DMAX_HARDWARE    450
-
-#ifdef TEST_FIXED_D
-#define D_FOR_FIXED    20
-#endif
+#define VOUT_HIGH    VOUT_35V
 
 //------- PIN CONFIG ----------------------
 #ifdef VER_1_0
-//GPIOA pin0	V_Sense / Vline_Sense
-//GPIOA pin1	I_Sense_Pos
-//GPIOA pin2	I_Sense_Neg
+//GPIOA pin0	Vbias_Sense
+//GPIOA pin1	Vup
+//GPIOA pin2	I_Sense
+//GPIOA pin3	Iup
+//GPIOA pin4	V220_Sense
 
-//GPIOA pin3	NC
+//GPIOA pin5    NC
 
-//GPIOA pin4	
-#define PROT_POS    ((GPIOA->IDR & 0x0010) != 0)
+//GPIOA pin6    TIM3_CH1 (CTRL_MOSFET)
 
-//GPIOA pin5
-#define PROT_NEG    ((GPIOA->IDR & 0x0020) != 0)
-
-//GPIOA pin6    TIM3_CH1 (L_LEFT)
-//GPIOA pin7	TIM3_CH2 (H_LEFT)
-
-//GPIOB pin0    TIM3_CH3 (L_RIGHT)
-//GPIOB pin1	TIM3_CH4 (H_RIGHT)
-
+//GPIOA pin7    
+//GPIOB pin0    
+//GPIOB pin1	
 //GPIOA pin8	
-#define AC_SYNC ((GPIOA->IDR & 0x0100) != 0)
+//GPIOA pin9    NC
 
-//GPIOA pin9
-//GPIOA pin10	usart1 tx rx
+//GPIOA pin10	LED
+#define LED ((GPIOA->ODR & 0x0400) != 0)
+#define LED_ON	GPIOA->BSRR = 0x00000400
+#define LED_OFF GPIOA->BSRR = 0x04000000
 
-//GPIOA pin11	NC
-
+//GPIOA pin11	
 //GPIOA pin12	
-#define LED ((GPIOA->ODR & 0x1000) != 0)
-#define LED_ON	GPIOA->BSRR = 0x00001000
-#define LED_OFF GPIOA->BSRR = 0x10000000
+//GPIOA pin13	
+//GPIOA pin14	
+//GPIOA pin15    NC
 
-//GPIOA pin13	NC
-//GPIOA pin14	NC
-
-//GPIOA pin15
-#define RELAY ((GPIOA->ODR & 0x8000) != 0)
-#define RELAY_ON  GPIOA->BSRR = 0x00008000
-#define RELAY_OFF GPIOA->BSRR = 0x80000000
-
-//GPIOB pin3	NC
-//GPIOB pin4	NC
-//GPIOB pin5	NC
-
+//GPIOB pin3	
+//GPIOB pin4	
+//GPIOB pin5	
 //GPIOB pin6
-#define STOP_JUMPER ((GPIOB->IDR & 0x0040) == 0)
-
 //GPIOB pin7	NC
 #endif
 
@@ -218,24 +157,8 @@ typedef enum
     JUMPER_PROTECT_OFF,
     OVERCURRENT_ERROR
     
-} ac_sync_state_t;
+} driver_state_t;
 
-//ESTADOS DEL PROGRAMA PRINCIPAL
-typedef enum
-{
-    MAIN_INIT = 0,
-    MAIN_SOFT_START,
-    MAIN_VOLTAGE_MODE,
-    MAIN_CURRENT_MODE,
-    MAIN_OVERCURRENT,
-    MAIN_JUMPER_PROTECTED,
-    MAIN_JUMPER_PROTECT_OFF,    
-    MAIN_GO_TO_FAILURE,
-    MAIN_OVERVOLTAGE,
-    MAIN_UNDERVOLTAGE,        
-    MAINS_FAILURE
-
-} main_state_t;
 
 //ESTADOS DEL LED
 typedef enum
@@ -257,12 +180,6 @@ typedef enum
 #define LED_OVERCURRENT_POS           6
 #define LED_OVERCURRENT_NEG           7
 
-
-#define SIZEOF_DATA1	512
-#define SIZEOF_DATA		256
-#define SIZEOF_DATA512	SIZEOF_DATA1
-#define SIZEOF_DATA256	SIZEOF_DATA
-#define SIZEOF_BUFFTCP	SIZEOF_DATA
 
 
 /* Module Functions ------------------------------------------------------------*/
