@@ -165,7 +165,8 @@ int main(void)
         {
         case POWER_UP:
             //TODO: revisar tambien 220V
-            if ((Vbias_Sense > VBIAS_START) && (Vline_Sense > VLINE_START_THRESHOLD))
+            // if ((Vbias_Sense > VBIAS_START) && (Vline_Sense > VLINE_START_THRESHOLD))
+            if (Vbias_Sense > VBIAS_START)
                 driver_state = SOFT_START;
             
             break;
@@ -222,7 +223,7 @@ int main(void)
                 if (Iup < I_SETPOINT)   
                 {                
                     d = PID_roof (V_SETPOINT, Vup, d, &ez1, &ez2);
-                    if (d)
+                    if (d > 0)    //d puede tomar valores negativos
                     {
                         if (d > DUTY_FOR_DMAX)
                             d = DUTY_FOR_DMAX;
@@ -249,7 +250,7 @@ int main(void)
                 if (Vup < V_SETPOINT)   
                 {                
                     d = PID_roof (I_SETPOINT, Iup, d, &ez1, &ez2);
-                    if (d)
+                    if (d > 0)    //d puede tomar valores negativos
                     {
                         if (d > DUTY_FOR_DMAX)
                             d = DUTY_FOR_DMAX;
