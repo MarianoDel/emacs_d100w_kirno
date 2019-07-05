@@ -86,9 +86,11 @@ int main(void)
     unsigned char i;
     unsigned short ii;
 
-    char s_lcd [120];
-
-    driver_state_t driver_state = START_SYNCING;
+    driver_states_t driver_state = AUTO_RESTART;
+    unsigned char soft_start_cnt = 0;
+    short d = 0;
+    short ez1 = 0;
+    short ez2 = 0;
 
 
     //GPIO Configuration.
@@ -123,7 +125,7 @@ int main(void)
     // TIM_17_Init();    //with int, tick: 1us
     MA32Circular_Reset();
     
-    CTRL_MOSFET(DUTY_5_PERCENT);
+    CTRL_MOSFET(DUTY_NONE);
     
     //ADC and DMA configuration
     AdcConfig();
@@ -132,215 +134,171 @@ int main(void)
     ADC1->CR |= ADC_CR_ADSTART;
     //end of ADC & DMA
 
+#ifdef HARD_TEST_MODE
     ChangeLed(LED_STANDBY);
     while (1)
     {
         if (sequence_ready)
         {
             sequence_ready_reset;
-            if (LED)
-                LED_OFF;
-            else
-                LED_ON;
+            // if (LED)
+            //     LED_OFF;
+            // else
+            //     LED_ON;
+            // CTRL_MOSFET(Vbias_Sense);
+            // CTRL_MOSFET(Vup);
+            // CTRL_MOSFET(I_Sense);
+            // CTRL_MOSFET(Iup);
+            CTRL_MOSFET(V220_Sense);
         }
-        // UpdateLed();
+        UpdateLed();
     }
+#endif
 
-    // EXTIOn();
-
-
-    //--- Inverter Mode ----------
+    
+    //--- Production Program ----------
 #ifdef DRIVER_MODE
     
     while (1)
     {
-        switch (ac_sync_state)
+        switch (driver_state)
         {
-        case START_SYNCING:
-            RELAY_ON;
-            timer_standby = 200;
-            ac_sync_state = WAIT_RELAY_TO_ON;
+        case POWER_UP:
+            //TODO: revisar tambien 220V
+            if ((Vbias_Sense > VBIAS_START) && (Vline_Sense > VLINE_START_THRESHOLD))
+                driver_state = SOFT_START;
+            
             break;
 
-        case WAIT_RELAY_TO_ON:
-            if (!timer_standby)
+        case SOFT_START:
+            if (sequence_ready)
             {
-                SYNC_Sync_Now_Reset();
-                TIM17->CNT = 0;
-                TIM17->ARR = 9800;
-                TIM17Enable();
-                ac_sync_state = WAIT_FOR_FIRST_SYNC;
+                sequence_ready_reset;
+                soft_start_cnt++;
+
+                //reviso no pasarme de corriente de salida
+                if (Iup < I_SETPOINT)
+                {
+                    //hago un soft start respecto de la corriente de salida
+                    if (soft_start_cnt > SOFT_START_CNT_ROOF)    //update cada 2ms aprox.
+                    {
+                        soft_start_cnt = 0;
+                    
+                        if ((Vup < V_SETPOINT) && (d < DUTY_FOR_DMAX))
+                        {
+                            d++;
+                            CTRL_MOSFET(d);
+                        }
+                        else
+                        {
+                            ChangeLed(LED_VOLTAGE_MODE);
+                            driver_state = VOLTAGE_MODE;
+                        }
+                    }
+                }                    
+                else
+                {
+                    ChangeLed(LED_CURRENT_MODE);
+                    driver_state = CURRENT_MODE;
+                }
             }
             break;
 
-        case WAIT_FOR_FIRST_SYNC:
-            if (SYNC_Sync_Now())
-            {
-                SYNC_Sync_Now_Reset();
-                ac_sync_state = WAIT_CROSS_NEG_TO_POS;
-                ChangeLed(LED_GENERATING);
-
-                HIGH_RIGHT(DUTY_NONE);
-                LOW_LEFT(DUTY_NONE);
-                TIM16->CNT = 0;
-            }
+        case AUTO_RESTART:
+            CTRL_MOSFET(DUTY_NONE);
+            d = 0;
+            ez1 = 0;
+            ez2 = 0;
+            ChangeLed(LED_STANDBY);
+            driver_state = POWER_UP;
             break;
         
-        case GEN_POS:
-            if (SYNC_Sync_Now())
+        case VOLTAGE_MODE:
+            if (sequence_ready)
             {
-                SYNC_Sync_Now_Reset();
-                ac_sync_state = WAIT_CROSS_POS_TO_NEG;
-                TIM16->CNT = 0;
-                
-                HIGH_LEFT(DUTY_NONE);
-                LOW_RIGHT(DUTY_NONE);
+                sequence_ready_reset;
 
-#ifdef USE_LED_FOR_MAIN_POLARITY
-                LED_OFF;
-#endif
-            }
-#ifdef INVERTER_MODE_PURE_SINUSOIDAL
-            else
-            {
-                if (TIM16->CNT >= 200)
+                //reviso cambio de modo
+                if (Iup < I_SETPOINT)   
+                {                
+                    d = PID_roof (V_SETPOINT, Vup, d, &ez1, &ez2);
+                    if (d)
+                    {
+                        if (d > DUTY_FOR_DMAX)
+                            d = DUTY_FOR_DMAX;
+                    }
+                    else
+                        d = DUTY_NONE;
+
+                    CTRL_MOSFET(d);
+                }
+                else     //cambio a lazo I
                 {
-                    TIM16->CNT = 0;
-                    //aca la senial (el ultimo punto) terminaria en 0
-                    if (p_signal < &mem_signal[(SIZEOF_SIGNAL - 1)])
-                        p_signal++;
-
-                    HIGH_LEFT(*p_signal);
+                    ChangeLed(LED_CURRENT_MODE);
+                    driver_state = CURRENT_MODE;
                 }
             }
-#endif    // INVERTER_MODE_PURE_SINUSOIDAL
             break;
 
-        case WAIT_CROSS_POS_TO_NEG:
-            if (TIM16->CNT >= 200)
+        case CURRENT_MODE:
+            if (sequence_ready)
             {
-                LOW_LEFT(DUTY_ALWAYS);
-#ifndef INVERTER_MODE_PURE_SINUSOIDAL
-                HIGH_RIGHT(DUTY_ALWAYS);
-#else
-                TIM16->CNT = 0;
-                p_signal = mem_signal;
-                HIGH_RIGHT(*p_signal);
-#endif
-                ac_sync_state = GEN_NEG;
+                sequence_ready_reset;
+
+                //reviso cambio de modo
+                if (Vup < V_SETPOINT)   
+                {                
+                    d = PID_roof (I_SETPOINT, Iup, d, &ez1, &ez2);
+                    if (d)
+                    {
+                        if (d > DUTY_FOR_DMAX)
+                            d = DUTY_FOR_DMAX;
+                    }
+                    else
+                        d = DUTY_NONE;
+
+                    CTRL_MOSFET(d);
+                }
+                else     //cambio a lazo V
+                {
+                    ChangeLed(LED_VOLTAGE_MODE);
+                    driver_state = VOLTAGE_MODE;
+                }
             }
             break;
             
-        case GEN_NEG:
-            if (SYNC_Sync_Now())
-            {
-                SYNC_Sync_Now_Reset();
-                ac_sync_state = WAIT_CROSS_NEG_TO_POS;
-                TIM16->CNT = 0;
-
-                HIGH_RIGHT(DUTY_NONE);
-                LOW_LEFT(DUTY_NONE);
-
-#ifdef USE_LED_FOR_MAIN_POLARITY
-                LED_ON;
-#endif
-            }
-#ifdef INVERTER_MODE_PURE_SINUSOIDAL
-            else
-            {
-                if (TIM16->CNT >= 200)
-                {
-                    TIM16->CNT = 0;
-                    //aca la senial (el ultimo punto) terminaria en 0
-                    if (p_signal < &mem_signal[(SIZEOF_SIGNAL - 1)])
-                        p_signal++;
-
-                    HIGH_RIGHT(*p_signal);
-                }
-            }
-#endif    // INVERTER_MODE_PURE_SINUSOIDAL            
+        case OUTPUT_OVERVOLTAGE:
+            if (!timer_standby)
+                driver_state = AUTO_RESTART;
             break;
 
-        case WAIT_CROSS_NEG_TO_POS:
-            if (TIM16->CNT >= 200)
-            {
-                LOW_RIGHT(DUTY_ALWAYS);
-#ifndef INVERTER_MODE_PURE_SINUSOIDAL
-                HIGH_LEFT(DUTY_ALWAYS);
-#else
-                TIM16->CNT = 0;
-                p_signal = mem_signal;
-                HIGH_LEFT(*p_signal);
-#endif
-                ac_sync_state = GEN_POS;
-            }
+        case INPUT_OVERVOLTAGE:
+            if (!timer_standby)
+                driver_state = AUTO_RESTART;                
             break;
             
-        case JUMPER_PROTECTED:
+        case OVERCURRENT:
             if (!timer_standby)
-            {
-                if (!STOP_JUMPER)
-                {
-                    ac_sync_state = JUMPER_PROTECT_OFF;
-                    timer_standby = 400;
-                }
-            }                
+                driver_state = AUTO_RESTART;                
             break;
 
-        case JUMPER_PROTECT_OFF:
+        case BIAS_OVERVOLTAGE:
             if (!timer_standby)
-            {
-                //vuelvo a INIT
-                ac_sync_state = START_SYNCING;
-                Usart1Send((char *) "Protect OFF\n");                    
-            }                
+                driver_state = AUTO_RESTART;                
             break;            
 
-        case OVERCURRENT_ERROR:
+        case POWER_DOWN:
             if (!timer_standby)
-            {
-                ChangeLed(LED_STANDBY);
-                ac_sync_state = START_SYNCING;
-            }
+                driver_state = AUTO_RESTART;                
             break;
 
         }
 
-        //Cosas que no tienen tanto que ver con las muestras o el estado del programa
-        if ((STOP_JUMPER) &&
-            (ac_sync_state != JUMPER_PROTECTED) &&
-            (ac_sync_state != JUMPER_PROTECT_OFF) &&            
-            (ac_sync_state != OVERCURRENT_ERROR))
-        {
-            RELAY_OFF;
-            HIGH_LEFT(DUTY_NONE);
-            HIGH_RIGHT(DUTY_NONE);
-
-            LOW_RIGHT(DUTY_NONE);
-            LOW_LEFT(DUTY_NONE);
-            
-            ChangeLed(LED_JUMPER_PROTECTED);
-            Usart1Send((char *) "Protect ON\n");
-            timer_standby = 1000;
-            ac_sync_state = JUMPER_PROTECTED;
-        }
-        
-        if (overcurrent_shutdown)
-        {
-            RELAY_OFF;
-            if (overcurrent_shutdown == 1)
-                ChangeLed(LED_OVERCURRENT_POS);
-            else
-                ChangeLed(LED_OVERCURRENT_NEG);
-
-            timer_standby = 10000;
-            overcurrent_shutdown = 0;
-            ac_sync_state = OVERCURRENT_ERROR;
-        }
-
+        //Cosas que no tienen tanto que ver con las muestras o el estado del programa        
 #ifdef USE_LED_FOR_MAIN_STATES
         UpdateLed();
 #endif
+        
     }
     
 #endif    // DRIVER_MODE

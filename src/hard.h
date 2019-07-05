@@ -14,20 +14,16 @@
 //--- Hardware Board Version -------------------------------
 #define VER_1_0    //version original
 
+#define V_SETPOINT    VOUT_35V
+#define I_SETPOINT    IOUT_2A
 
-#define VOUT_SETPOINT    VOUT_200V
-#define VOUT_HIGH_MODE_CHANGE    VOUT_205V
-#define VOUT_LOW_MODE_CHANGE    VOUT_195V
+#define VBIAS_HIGH    VBIAS_25V
+#define VBIAS_LOW     VBIAS_08V
+#define VBIAS_START   VBIAS_10V
 
-#define DUTY_TO_CHANGE_CURRENT_MODE    25
-#define DUTY_TO_CHANGE_VOLTAGE_MODE    18
+#define VOUT_HIGH    VOUT_35V
 
-#define VOUT_OVERVOLTAGE_THRESHOLD_TO_DISCONNECT    VOUT_400V
-#define VOUT_OVERVOLTAGE_THRESHOLD_TO_RECONNECT    VOUT_350V
-
-// #define VIN_UNDERVOLTAGE_THRESHOLD_TO_DISCONNECT    VIN_17V
-#define VIN_UNDERVOLTAGE_THRESHOLD_TO_DISCONNECT    VIN_10V
-#define VIN_UNDERVOLTAGE_THRESHOLD_TO_RECONNECT    VIN_12V
+#define VLINE_START_THRESHOLD    VLINE_180V
 
 //--- Configuration for Hardware Versions ------------------
 #ifdef VER_2_0
@@ -47,7 +43,8 @@
 
 // SOFTWARE Features -------------------------
 //-- Types of programs ----------
-// #define DRIVER_MODE
+#define DRIVER_MODE
+// #define HARD_TEST_MODE
 
 //-- Types of led indications ----------
 #define USE_LED_FOR_MAIN_STATES
@@ -92,17 +89,30 @@
 
 //-------- End Of Defines For Configuration ------
 
-#define VIN_25V    698
-#define VIN_10V    279
-#define VIN_08V    223
-
-#define VBIAS_HIGH    VIN_25V
-#define VBIAS_LOW     VIN_08V
-#define VBIAS_START   VIN_10V
+#define VBIAS_25V    698
+#define VBIAS_12V    346
+#define VBIAS_10V    279
+#define VBIAS_08V    223
+//bias @12V 1.14V -> 346  ;;medido 5-7-19
 
 #define VOUT_35V    521    
 
-#define VOUT_HIGH    VOUT_35V
+#define IOUT_3A    610
+#define IOUT_2A    406
+#define IOUT_1A    203
+//Iup @2.38A 1.56V -> 484  ;;medido 5-7-2019
+
+#define VLINE_180V    639
+#define VLINE_220V    782
+//V220_Sense @311Vp 2.52Vp -> 782    ;;medido 5-7-2019
+
+#if (defined USE_FREQ_70KHZ)
+#define SOFT_START_CNT_ROOF    140
+#elif (defined USE_FREQ_48KHZ)
+#define SOFT_START_CNT_ROOF    96
+#else
+#error "select FREQ on hard.h"
+#endif
 
 //------- PIN CONFIG ----------------------
 #ifdef VER_1_0
@@ -110,7 +120,7 @@
 //GPIOA pin1	Vup
 //GPIOA pin2	I_Sense
 //GPIOA pin3	Iup
-//GPIOA pin4	V220_Sense
+//GPIOA pin4	V220_Sense, Vline_Sense
 
 //GPIOA pin5    NC
 
@@ -143,21 +153,21 @@
 //------- END OF PIN CONFIG -------------------
 
 
-//AC_SYNC States
+//DRIVER States
 typedef enum
 {
-    START_SYNCING = 0,
-    WAIT_RELAY_TO_ON,
-    WAIT_FOR_FIRST_SYNC,
-    GEN_POS,
-    WAIT_CROSS_POS_TO_NEG,
-    GEN_NEG,
-    WAIT_CROSS_NEG_TO_POS,
-    JUMPER_PROTECTED,
-    JUMPER_PROTECT_OFF,
-    OVERCURRENT_ERROR
+    POWER_UP = 0,
+    SOFT_START,
+    VOLTAGE_MODE,
+    CURRENT_MODE,
+    OUTPUT_OVERVOLTAGE,
+    INPUT_OVERVOLTAGE,
+    OVERCURRENT,
+    BIAS_OVERVOLTAGE,
+    AUTO_RESTART,
+    POWER_DOWN
     
-} driver_state_t;
+} driver_states_t;
 
 
 //ESTADOS DEL LED
@@ -173,8 +183,8 @@ typedef enum
 //Estados Externos de LED BLINKING
 #define LED_NO_BLINKING               0
 #define LED_STANDBY                   1
-#define LED_GENERATING                2
-#define LED_LOW_VOLTAGE               3
+#define LED_VOLTAGE_MODE              2
+#define LED_CURRENT_MODE              3
 #define LED_JUMPER_PROTECTED          4
 #define LED_VIN_ERROR                 5
 #define LED_OVERCURRENT_POS           6

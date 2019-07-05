@@ -31,6 +31,7 @@
 #define I_Sense        adc_ch[2]
 #define Iup            adc_ch[3]
 #define V220_Sense     adc_ch[4]
+#define Vline_Sense    V220_Sense
 #define ADC_CHANNEL_QUANTITY         5
 #define ADC_LAST_CHANNEL_QUANTITY    (ADC_CHANNEL_QUANTITY - 1)
 
