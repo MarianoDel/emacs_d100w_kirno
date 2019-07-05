@@ -195,14 +195,14 @@ void TIM_3_Init (void)
     
     //Alternative Function Pins
     temp = GPIOA->AFR[0];
-    temp &= 0x00FFFFFF;
-    temp |= 0x11000000;    //PA7 & PA6 -> AF1;
+    temp &= 0xF0FFFFFF;
+    temp |= 0x01000000;    //PA6 -> AF1;
     GPIOA->AFR[0] = temp;
 
-    temp = GPIOB->AFR[0];
-    temp &= 0xFFFFFF00;
-    temp |= 0x00000011;    //PB1 & PB0 -> AF1;
-    GPIOB->AFR[0] = temp;
+    // temp = GPIOB->AFR[0];
+    // temp &= 0xFFFFFF00;
+    // temp |= 0x00000011;    //PB1 & PB0 -> AF1;
+    // GPIOB->AFR[0] = temp;
 
     // Enable timer ver UDIS
     //TIM3->DIER |= TIM_DIER_UIE;

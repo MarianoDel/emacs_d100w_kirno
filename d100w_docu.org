@@ -1,11 +1,27 @@
 * DRIVER DE 100W CON MICRO stm32f030K6T6
 ** Arranque Hardware
-*** TODO Implementar DMA para el ADC
-    - ver frecuencia de final de muestreo
+*** ADC + DMA + TIM
+**** Tiempo teorico de conversion ADC con DMA
+     - tiempo de conversion por canal 12bits (sample_time + 12.5) * tick
+     - tiempo de conversion por canal 10bits (sample_time + 10.5) * tick
+     - tiempo de conversion por canal 8bits (sample_time + 8.5) * tick
 
-*** TODO El muestreo con TIM1 termina muy sobre el nuevo pulso
-    - Corregir el tiempo de muestreo atrasando o adelentando el sample time
-     Lo paso a 71.5 ciclos y termina muestreando a 24KHz
+       | Resolution | Sample Time[samples] | Channels | Clk Freq [MHz] | Time to end [us] |
+       |------------+----------------------+----------+----------------+------------------|
+       |         10 |                 71.5 |        5 |             12 |        34.166667 |
+       |            |                      |          |                |                  |
+       #+TBLFM: @2$5=((@2$1+0.5+@2$2)*@2$3/@2$4)
+
+**** Medicion de tiempo del DMA para el ADC
+    - con 70KHz en TIM3 termina justo en la mitad de un ciclo
+    - con 48KHz en TIM3 termina 1/3 ntes del nuevo pulso
+
+    | freq TIM3 | freq seq_ready | T seq_ready |
+    |-----------+----------------+-------------|
+    | 48KHz     | 28.4KHz        | 35.2us      |
+    | 70KHz     | 28.4KHz        | 35.2us      |
+    |           |                |             |
+
 
 *** TODO Revisar sensado de corriente - parece no funcionar ok -
 *** TODO Maxima tension de salida - quema el diodo FR307 -

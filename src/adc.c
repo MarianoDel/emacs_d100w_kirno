@@ -77,9 +77,6 @@ void AdcConfig (void)
     //ADC1->CFGR1 |= ADC_Resolution_12b | ADC_CFGR1_DISCEN;
     // ADC1->CFGR1 |= ADC_Resolution_12b;
 
-    //DMA Config
-    //ADC1->CFGR1 |= ADC_CFGR1_DMAEN | ADC_CFGR1_DMACFG;
-
     //set sampling time
     ADC1->SMPR |= ADC_SampleTime_71_5Cycles;
     // ADC1->SMPR |= ADC_SampleTime_41_5Cycles;		//17.39 son SP 420    

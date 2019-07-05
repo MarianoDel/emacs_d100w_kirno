@@ -123,7 +123,7 @@ int main(void)
     // TIM_17_Init();    //with int, tick: 1us
     MA32Circular_Reset();
     
-    CTRL_MOSFET(DUTY_NONE);
+    CTRL_MOSFET(DUTY_5_PERCENT);
     
     //ADC and DMA configuration
     AdcConfig();
