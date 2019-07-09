@@ -35,6 +35,7 @@ unsigned short MAFilter32Circular (unsigned short, unsigned short *, unsigned ch
 #ifdef USE_PID_CONTROLLERS
 short PID (short, short);
 short PID_roof (short, short, short, short *, short *);
+void PID_update_constants (unsigned short, unsigned short, unsigned short);
 #endif
 
 #ifdef USE_MA8_CIRCULAR

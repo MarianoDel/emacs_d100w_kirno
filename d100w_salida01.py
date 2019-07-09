@@ -1,0 +1,1 @@
+../../python/algos/d100w_salida01.py

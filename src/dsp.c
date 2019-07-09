@@ -15,15 +15,15 @@
 
 /* Externals variables ---------------------------------------------------------*/
 #ifdef USE_PID_UPDATED_CONSTANTS
-extern unsigned short pid_param_p;
-extern unsigned short pid_param_i;
-extern unsigned short pid_param_d;
+unsigned short pid_param_p;
+unsigned short pid_param_i;
+unsigned short pid_param_d;
 #endif
 
 /* Global variables ---------------------------------------------------------*/
 //------- de los PID ---------
 #ifdef USE_PID_CONTROLLERS
-volatile int acc = 0;
+int acc = 0;
 short error_z1 = 0;
 short error_z2 = 0;
 short d_last = 0;
@@ -38,6 +38,8 @@ unsigned short v_ma_circular [32];
 unsigned short * p_ma_circular;
 #endif
 /* Module Definitions ---------------------------------------------------------*/
+// #define PID_CONSTANT_DIVIDER    10    //todos se dividen por 1024
+// #define PID_CONSTANT_DIVIDER    8    //todos se dividen por 256
 #define PID_CONSTANT_DIVIDER    7    //todos se dividen por 128
 // #define PID_CONSTANT_DIVIDER    6    //todos se dividen por 64
 
@@ -46,13 +48,22 @@ unsigned short * p_ma_circular;
 // #define KIV	11    //0.08333
 // #define KDV	0
 
-// #define KPV	-2    //-0.016
-// #define KIV	4    //0.0333
-// #define KDV	0
-
-#define KPV	5    //0.0375
-#define KIV	3    //0.025
+//estos funcionan bastante bien para tension en vacio, prende apaga alrededor de 100V
+//usan divisor por 128, ajusta en 35.6V, este con carga ajusta mejor 34.3 a 35.6
+#define KPV	5    //kp_dig = 0.039
+#define KIV	3    //ki_dig = 0.023
 #define KDV	0
+
+//estos funcionan bastante bien para tension en vacio, prende apaga alrededor de 80V
+//usan divisor por 128, ajustan en 34.3V, ajusta muy rapido diferentes cambios de tension
+//con carga no ajusta tan bien 32.3 a 34.6
+// #define KPV	19    //kp_dig = 0.15
+// #define KIV	1    //ki_dig = 0.0078
+// #define KDV	182    //kd_dig = 1.42
+
+// #define KPV	2    //kp_dig = 0.01
+// #define KIV	1    //ki_dig = 0.0000416
+// #define KDV	24    //kd_dig = 0.024
 
 
 #define K1V (KPV + KIV + KDV)
@@ -330,6 +341,13 @@ short PID (short setpoint, short sample)
 #define K1    (pid_param_p + pid_param_i + pid_param_d)
 #define K2    (pid_param_p + pid_param_d + pid_param_d)
 #define K3    (pid_param_d)
+
+void PID_update_constants (unsigned short kp, unsigned short ki, unsigned short kd)
+{
+    pid_param_p = kp;
+    pid_param_i = ki;
+    pid_param_d = kd;
+}
 #elif (defined USE_PID_FIXED_CONSTANTS)
 #define K1    K1V
 #define K2    K2V
@@ -354,11 +372,11 @@ short PID_roof (short setpoint, short sample, short local_last_d, short * e_z1, 
     val_k1 = acc >> PID_CONSTANT_DIVIDER;
 
     //K2
-    acc = K2 * *e_z1;    //K2 = no llega pruebo con 1
+    acc = K2 * *e_z1;
     val_k2 = acc >> PID_CONSTANT_DIVIDER;    //si es mas grande que K1 + K3 no lo deja arrancar
 
     //K3
-    acc = K3 * *e_z2;    //K3 = 0.4
+    acc = K3 * *e_z2;
     val_k3 = acc >> PID_CONSTANT_DIVIDER;
 
     d = local_last_d + val_k1 - val_k2 + val_k3;

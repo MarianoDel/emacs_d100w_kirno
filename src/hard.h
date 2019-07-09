@@ -15,7 +15,7 @@
 #define VER_1_0    //version original
 
 #define V_SETPOINT    VOUT_35V
-#define I_SETPOINT    IOUT_2A
+#define I_SETPOINT    IOUT_3A
 
 #define VBIAS_HIGH    VBIAS_25V
 #define VBIAS_LOW     VBIAS_08V
@@ -24,6 +24,7 @@
 #define VOUT_HIGH    VOUT_35V
 
 #define VLINE_START_THRESHOLD    VLINE_180V
+
 
 //--- Configuration for Hardware Versions ------------------
 #ifdef VER_2_0
@@ -51,8 +52,8 @@
 // #define USE_LED_FOR_PWM_PULSES
 
 //-- Frequency selection ----------
-// #define USE_FREQ_70KHZ    //max pwm: 686
-#define USE_FREQ_48KHZ    //max pwm: 1000
+#define USE_FREQ_70KHZ    //max pwm: 686
+// #define USE_FREQ_48KHZ    //max pwm: 1000
 
 //-- Types of Interrupts ----------
 // #define WITH_AC_SYNC_INT
@@ -98,7 +99,7 @@
 #define VOUT_35V    521    
 
 #define IOUT_3A    610
-#define IOUT_2A    406
+#define IOUT_2A    406    //esto da 2.24A en frio 8-7-19
 #define IOUT_1A    203
 //Iup @2.38A 1.56V -> 484  ;;medido 5-7-2019
 

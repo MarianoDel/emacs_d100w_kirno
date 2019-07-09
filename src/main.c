@@ -180,21 +180,30 @@ int main(void)
                 //reviso no pasarme de corriente de salida
                 if (Iup < I_SETPOINT)
                 {
-                    //hago un soft start respecto de la corriente de salida
-                    if (soft_start_cnt > SOFT_START_CNT_ROOF)    //update cada 2ms aprox.
+                    //reviso no pasarme de tension
+                    if (Vup < V_SETPOINT)
                     {
-                        soft_start_cnt = 0;
+                        //hago un soft start respecto de la corriente y/o tension de salida
+                        if (soft_start_cnt > SOFT_START_CNT_ROOF)    //update cada 2ms aprox.
+                        {
+                            soft_start_cnt = 0;
                     
-                        if ((Vup < V_SETPOINT) && (d < DUTY_FOR_DMAX))
-                        {
-                            d++;
-                            CTRL_MOSFET(d);
+                            if (d < DUTY_FOR_DMAX)
+                            {
+                                d++;
+                                CTRL_MOSFET(d);
+                            }
+                            else
+                            {
+                                ChangeLed(LED_VOLTAGE_MODE);
+                                driver_state = VOLTAGE_MODE;
+                            }
                         }
-                        else
-                        {
-                            ChangeLed(LED_VOLTAGE_MODE);
-                            driver_state = VOLTAGE_MODE;
-                        }
+                    }
+                    else
+                    {
+                        ChangeLed(LED_VOLTAGE_MODE);
+                        driver_state = VOLTAGE_MODE;
                     }
                 }                    
                 else

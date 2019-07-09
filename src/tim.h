@@ -20,7 +20,7 @@
 #define DUTY_NONE		0
 #define DUTY_5_PERCENT		50
 #define DUTY_10_PERCENT		100
-#define DUTY_FOR_DMAX           450
+#define DUTY_FOR_DMAX           (DUTY_50_PERCENT)
 #define DUTY_50_PERCENT		500
 #define DUTY_50_PERCENT_PLUS_ONE    (DUTY_50_PERCENT + 1)
 #define DUTY_100_PERCENT        1000
