@@ -134,6 +134,21 @@ int main(void)
     ADC1->CR |= ADC_CR_ADSTART;
     //end of ADC & DMA
 
+#ifdef HARD_TEST_MODE_LINE_SYNC
+    Hard_Reset_Voltage_Filter();
+    
+    while (1)
+    {
+        if (sequence_ready)
+        {
+            sequence_ready_reset;
+            Hard_Update_Voltage_Filter(Vline_Sense);
+        }
+
+        Hard_Update_Voltage_Sense();
+    }
+#endif
+
 #ifdef HARD_TEST_MODE
     ChangeLed(LED_STANDBY);
     while (1)
@@ -154,7 +169,7 @@ int main(void)
         UpdateLed();
     }
 #endif
-
+    
     
     //--- Production Program ----------
 #ifdef DRIVER_MODE

@@ -14,7 +14,7 @@
 #define USE_PID_FIXED_CONSTANTS
 // #define USE_PID_UPDATED_CONSTANTS
 
-// #define USE_MA8_CIRCULAR
+#define USE_MA8_CIRCULAR
 #define USE_MA32_CIRCULAR
 
 
@@ -42,6 +42,8 @@ void PID_update_constants (unsigned short, unsigned short, unsigned short);
 void MA8Circular_Start (void);
 void MA8Circular_Reset (void);
 unsigned short MA8Circular (unsigned short);
+void MA8Circular_Only_Load (unsigned short);
+unsigned short MA8Circular_Only_Calc (void);
 #endif
 #ifdef USE_MA32_CIRCULAR
 void MA32Circular_Start (void);

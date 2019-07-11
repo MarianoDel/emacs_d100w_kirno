@@ -24,6 +24,8 @@
 #define VOUT_HIGH    VOUT_35V
 
 #define VLINE_START_THRESHOLD    VLINE_180V
+#define VOLTAGE_MAX_THRESHOLD    100
+#define VOLTAGE_MIN_THRESHOLD    50
 
 
 //--- Configuration for Hardware Versions ------------------
@@ -44,12 +46,13 @@
 
 // SOFTWARE Features -------------------------
 //-- Types of programs ----------
-#define DRIVER_MODE
+// #define DRIVER_MODE
 // #define HARD_TEST_MODE
+#define HARD_TEST_MODE_LINE_SYNC
 
 //-- Types of led indications ----------
-#define USE_LED_FOR_MAIN_STATES
-// #define USE_LED_FOR_PWM_PULSES
+// #define USE_LED_FOR_MAIN_STATES
+#define USE_LED_FOR_MAINS_SYNC
 
 //-- Frequency selection ----------
 #define USE_FREQ_70KHZ    //max pwm: 686
@@ -58,6 +61,11 @@
 //-- Types of Interrupts ----------
 // #define WITH_AC_SYNC_INT
 // #define WITH_OVERCURRENT_SHUTDOWN
+
+//-- Types of Optoisolatar used ----------
+#define OPTO_KB817
+// #define OPTO_FOD8801
+
 
 //---- End of Features Configuration ----------
 
@@ -98,10 +106,18 @@
 
 #define VOUT_35V    521    
 
+#if defined OPTO_KB817
 #define IOUT_3A    610
 #define IOUT_2A    406    //esto da 2.24A en frio 8-7-19
 #define IOUT_1A    203
 //Iup @2.38A 1.56V -> 484  ;;medido 5-7-2019
+#elif defined OPTO_FOD8801
+#define IOUT_3A    915
+#define IOUT_2A    610    //esto da 2.07A en frio 10-7-19
+#define IOUT_1A    305
+#else
+#error "define the opto in hard.h"
+#endif
 
 #define VLINE_180V    639
 #define VLINE_220V    782
@@ -212,5 +228,9 @@ unsigned short VoutTicksToVoltage (unsigned short);
 unsigned short VinTicksToVoltage (unsigned short);
 unsigned short Hard_GetDmaxLout (unsigned short, unsigned short);
 void WelcomeCodeFeatures (char *);
-    
+
+void Hard_Update_Voltage_Filter (unsigned short);
+void Hard_Reset_Voltage_Filter (void);
+void Hard_Update_Voltage_Sense (void);
+
 #endif /* _HARD_H_ */

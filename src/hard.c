@@ -30,6 +30,14 @@ extern volatile unsigned short adc_ch[];
 led_state_t led_state = START_BLINKING;
 unsigned char blink = 0;
 unsigned char how_many_blinks = 0;
+//para los filtros de tension y snchro
+unsigned char hard_filter_index = 0;
+unsigned char hard_filter_ready = 0;
+unsigned char last_voltage_was_high = 0;
+unsigned short integrate_voltage = 0;
+unsigned short integrate_voltage_in_positive = 0;
+unsigned short last_voltage_cycle = 0;
+unsigned short last_voltage_cycle_in_positive = 0;
 
 
 #define STRING2(x) #x
@@ -311,6 +319,60 @@ void WelcomeCodeFeatures (char * str)
     Wait_ms(30);    
 #endif
     
+}
+
+
+void Hard_Update_Voltage_Filter (unsigned short new_sample)
+{
+    MA8Circular_Only_Load(new_sample);
+    if (hard_filter_index < 7)
+        hard_filter_index++;
+    else
+    {
+        hard_filter_index = 0;
+        hard_filter_ready = 1;
+    }
+}
+
+void Hard_Reset_Voltage_Filter (void)
+{
+    MA8Circular_Reset();
+}
+
+void Hard_Update_Voltage_Sense (void)
+{
+    unsigned short voltage = 0;
+    
+    if (hard_filter_ready)
+    {
+        hard_filter_ready = 0;
+        voltage = MA8Circular_Only_Calc();
+
+        if (voltage > VOLTAGE_MAX_THRESHOLD)
+        {
+            last_voltage_was_high = 1;
+            integrate_voltage++;
+            integrate_voltage_in_positive++;
+        }
+        else if ((voltage < VOLTAGE_MIN_THRESHOLD) && (last_voltage_was_high))
+        {
+            //flanco descendente
+            last_voltage_cycle = integrate_voltage;
+            last_voltage_cycle_in_positive = integrate_voltage_in_positive;
+            integrate_voltage = 1;
+            integrate_voltage_in_positive = 0;
+            last_voltage_was_high = 0;
+#ifdef USE_LED_FOR_MAINS_SYNC
+            if (LED)
+                LED_OFF;
+            else
+                LED_ON;
+#endif
+        }
+        else
+            integrate_voltage++;
+        
+    }
 }
 
 //---- end of file ----//

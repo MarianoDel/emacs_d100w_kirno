@@ -166,6 +166,24 @@ unsigned short MA8Circular (unsigned short new_sample)
 
     return (unsigned short) (total_ma >> 3);
 }
+
+void MA8Circular_Only_Load (unsigned short new_sample)
+{
+    *p_ma8 = new_sample;
+
+    if (p_ma8 < (v_ma8 + 7))
+        p_ma8 += 1;
+    else
+        p_ma8 = &v_ma8[0];
+}
+
+unsigned short MA8Circular_Only_Calc (void)
+{
+    unsigned int total_ma;
+
+    total_ma = v_ma8[0] + v_ma8[1] + v_ma8[2] + v_ma8[3] + v_ma8[4] + v_ma8[5] + v_ma8[6] + v_ma8[7];
+    return (unsigned short) (total_ma >> 3);
+}
 #endif
 
 unsigned short MAFilterFast (unsigned short new_sample, unsigned short * vsample)
