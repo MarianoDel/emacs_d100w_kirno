@@ -363,14 +363,19 @@ void Hard_Update_Voltage_Sense (void)
             integrate_voltage_in_positive = 0;
             last_voltage_was_high = 0;
 #ifdef USE_LED_FOR_MAINS_SYNC
-            if (LED)
-                LED_OFF;
-            else
-                LED_ON;
+            LED_ON;
 #endif
         }
         else
             integrate_voltage++;
+
+#ifdef USE_LED_FOR_MAINS_SYNC
+        if (LED)
+        {
+            if (integrate_voltage > (last_voltage_cycle >> 1))
+                LED_OFF;
+        }
+#endif
         
     }
 }
