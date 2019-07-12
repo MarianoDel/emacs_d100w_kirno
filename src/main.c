@@ -119,7 +119,9 @@ int main(void)
     // EXTIOff ();
     
     TIM_3_Init();    //Used for mosfet channels control and ADC synchro
-
+#ifdef USE_LED_AS_TIM1_CH3
+    TIM_1_Init();
+#endif
     // TIM_16_Init();    //free running with tick: 1us
     // TIM16Enable();
     // TIM_17_Init();    //with int, tick: 1us
@@ -136,7 +138,9 @@ int main(void)
 
 #ifdef HARD_TEST_MODE_LINE_SYNC
     Hard_Reset_Voltage_Filter();
-    
+
+    // CTRL_MOSFET(DUTY_10_PERCENT);
+    // CTRL_LED(DUTY_50_PERCENT);
     while (1)
     {
         if (sequence_ready)
@@ -173,6 +177,7 @@ int main(void)
     
     //--- Production Program ----------
 #ifdef DRIVER_MODE
+    Hard_Reset_Voltage_Filter();
     
     while (1)
     {
@@ -262,6 +267,7 @@ int main(void)
                     ChangeLed(LED_CURRENT_MODE);
                     driver_state = CURRENT_MODE;
                 }
+                Hard_Update_Voltage_Filter(Vline_Sense);
             }
             break;
 
@@ -289,6 +295,7 @@ int main(void)
                     ChangeLed(LED_VOLTAGE_MODE);
                     driver_state = VOLTAGE_MODE;
                 }
+                Hard_Update_Voltage_Filter(Vline_Sense);
             }
             break;
             
@@ -319,7 +326,9 @@ int main(void)
 
         }
 
-        //Cosas que no tienen tanto que ver con las muestras o el estado del programa        
+        //Cosas que no tienen tanto que ver con las muestras o el estado del programa
+        Hard_Update_Voltage_Sense();
+        
 #ifdef USE_LED_FOR_MAIN_STATES
         UpdateLed();
 #endif

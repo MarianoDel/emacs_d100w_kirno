@@ -38,7 +38,8 @@ unsigned short integrate_voltage = 0;
 unsigned short integrate_voltage_in_positive = 0;
 unsigned short last_voltage_cycle = 0;
 unsigned short last_voltage_cycle_in_positive = 0;
-
+unsigned short last_voltage_peak = 0;
+unsigned short voltage_peak = 0;
 
 #define STRING2(x) #x
 #define STRING(x) STRING2(x)
@@ -348,23 +349,39 @@ void Hard_Update_Voltage_Sense (void)
         hard_filter_ready = 0;
         voltage = MA8Circular_Only_Calc();
 
+#ifdef USE_LED_AS_TIM1_CH3
+        CTRL_LED(voltage);
+#endif
         if (voltage > VOLTAGE_MAX_THRESHOLD)
         {
             last_voltage_was_high = 1;
             integrate_voltage++;
             integrate_voltage_in_positive++;
+
+            //busco el pico de tension
+            if (voltage > voltage_peak)
+                voltage_peak = voltage;
+
+#ifdef USE_LED_FOR_POSITIVE_VOLTAGE
+            LED_ON;
+#endif
         }
         else if ((voltage < VOLTAGE_MIN_THRESHOLD) && (last_voltage_was_high))
         {
             //flanco descendente
             last_voltage_cycle = integrate_voltage;
             last_voltage_cycle_in_positive = integrate_voltage_in_positive;
+            last_voltage_peak = voltage_peak;
             integrate_voltage = 1;
             integrate_voltage_in_positive = 0;
+            voltage_peak = 0;
             last_voltage_was_high = 0;
 #ifdef USE_LED_FOR_MAINS_SYNC
             LED_ON;
 #endif
+#ifdef USE_LED_FOR_POSITIVE_VOLTAGE
+            LED_OFF;
+#endif            
         }
         else
             integrate_voltage++;

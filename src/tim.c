@@ -123,50 +123,34 @@ void TIM_1_Init (void)
     //Configuracion del timer.
     //TIM1->CR1 |= TIM_CR1_OPM;        //clk int / 1; upcounting; one pulse
     TIM1->CR1 = 0x00;        //clk int / 1;
-    TIM1->CR2 |= TIM_CR2_MMS_1;        //UEV -> TRG0
-    //TIM1->CR2 = 0x00;
-    //TIM1->SMCR |= TIM_SMCR_MSM | TIM_SMCR_SMS_2 | TIM_SMCR_SMS_1 | TIM_SMCR_TS_1;    //link timer3
-    TIM1->SMCR = 0x0000;
+    // TIM1->CR2 |= TIM_CR2_MMS_1;        //UEV -> TRG0
+    TIM1->CR2 = 0x00;
+    // TIM1->SMCR |= TIM_SMCR_MSM | TIM_SMCR_SMS_2 |
+    //     TIM_SMCR_SMS_1 | TIM_SMCR_TS_1;    //link timer3; resync <- TRG2
+    // TIM1->SMCR |= TIM_SMCR_MSM | TIM_SMCR_SMS_2 | TIM_SMCR_SMS_1;    //link timer3; resync <- TRG0
+    TIM1->SMCR |= TIM_SMCR_SMS_2 | TIM_SMCR_SMS_1;    //link timer3 <- TRG0    
+    // TIM1->SMCR = 0x0000;
 
-#if (defined VER_2_0)
-#ifdef WITH_TIM1_FB
-    TIM1->CCMR1 = 0x0060;            //CH1 output PWM mode 1 (channel active TIM1->CNT < TIM1->CCR1)
-    TIM1->CCMR2 = 0x0060;            //CH3 output PWM mode 1
-    TIM1->CCER |= TIM_CCER_CC1E | TIM_CCER_CC3NE;    //el pin es TIM1_CH3N
+    TIM1->CCMR1 = 0x0000;            
+    TIM1->CCMR2 = 0x0060;            //CH3 output PWM mode 1 (channel active TIM1->CNT < TIM1->CCR1)
+    TIM1->CCER |= TIM_CCER_CC3E;
     // TIM1->CCER |= TIM_CCER_CC1E | TIM_CCER_CC3NE | TIM_CCER_CC3NP;    //el pin es TIM1_CH3N    
-#else    
-    TIM1->CCMR1 = 0x0060;            //CH1 output PWM mode 1 (channel active TIM1->CNT < TIM1->CCR1)    
-    TIM1->CCMR2 = 0x0000;            //
-    TIM1->CCER |= TIM_CCER_CC1E;
-#endif
-#endif
     
     TIM1->BDTR |= TIM_BDTR_MOE;
     // TIM1->ARR = 1023;                //cada tick 20.83ns
-    TIM1->ARR = DUTY_100_PERCENT;                //cada tick 20.83ns
+    TIM1->ARR = DUTY_100_PERCENT;   
 
     TIM1->CNT = 0;
     TIM1->PSC = 0;
 
-#if (defined VER_2_0)
-#ifdef WITH_TIM1_FB
-    temp = GPIOB->AFR[0];
-    temp &= 0xFFFFFF0F;
-    temp |= 0x00000020;    //PB1 -> AF2
-    GPIOB->AFR[0] = temp;
-#endif
     temp = GPIOA->AFR[1];
-    temp &= 0xFFFFFFF0;
-    temp |= 0x00000002;    //PA8 -> AF2
+    temp &= 0xFFFFF0FF;
+    temp |= 0x00000200;    //PA10 -> AF2
     GPIOA->AFR[1] = temp;
-#endif
     
     // Enable timer ver UDIS
     //TIM1->DIER |= TIM_DIER_UIE;
     TIM1->CR1 |= TIM_CR1_CEN;
-
-    TIM1->CCR1 = 0;
-    TIM1->CCR3 = 0;    
 }
 
 

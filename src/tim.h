@@ -92,6 +92,7 @@
 #endif
 
 #define CTRL_MOSFET(X)     Update_TIM3_CH1(X)
+#define CTRL_LED(X)    Update_TIM1_CH3(X)
 
 //--- Exported functions ---//
 
